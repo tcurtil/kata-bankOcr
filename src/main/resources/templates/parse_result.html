@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+	<head></head>
+	<body>
+		Hello.
+		
+		<div>
+			Here is the files that you may parse :
+			<ul>
+				<li th:each="f : ${availableFiles}">
+					<a th:href="@{'?filename='+${f.getName()}}" th:text="${f.getName()}"></a>
+				</li>
+			</ul>
+		</div>
+		
+		<div th:if="${accountIdentifiers != null}">
+			Parsed account numbers :
+			<ul>
+				<li th:each="accountId : ${accountIdentifiers}" th:text="${accountId}"></li>
+			</ul>
+		</div>
+	</body>
+</html>
