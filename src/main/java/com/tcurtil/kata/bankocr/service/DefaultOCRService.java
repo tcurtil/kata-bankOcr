@@ -9,9 +9,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -20,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.tcurtil.kata.bankocr.model.AccountIdentifier;
 
 @Service
 public class DefaultOCRService implements OCRService {
@@ -30,70 +30,10 @@ public class DefaultOCRService implements OCRService {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	private static final Map<String, Character> numberEncoding = new HashMap<>();
-	
-	static {
-		numberEncoding.put(
-				" _ " +
-				"| |" +
-				"|_|"
-			, '0');
-		
-		numberEncoding.put(
-				"   " +
-				"  |" +
-				"  |"
-			, '1');
-		
-		numberEncoding.put(
-				" _ " +
-				" _|" +
-				"|_ "
-			, '2');
-		
-		numberEncoding.put(
-				" _ " +
-				" _|" +
-				" _|"
-			, '3');
-		
-		numberEncoding.put(
-				"   " +
-				"|_|" +
-				"  |"
-			, '4');
-		
-		numberEncoding.put(
-				" _ " +
-				"|_ " +
-				" _|"
-			, '5');
-		
-		numberEncoding.put(
-				" _ " +
-				"|_ " +
-				"|_|"
-			, '6');
-		
-		numberEncoding.put(
-				" _ " +
-				"  |" +
-				"  |"
-			, '7');
-		
-		numberEncoding.put(
-				" _ " +
-				"|_|" +
-				"|_|"
-			, '8');
-		
-		numberEncoding.put(
-				" _ " +
-				"|_|" +
-				" _|"
-			, '9');
-	}
-	
+	/**
+	 * This method check that the configuration is valid so that we can fail early in 
+	 * case of badly configured base folder
+	 */
 	@PostConstruct
 	public void init() {
 		if (dirPath == null ||  "".equals(dirPath)) {
@@ -113,9 +53,10 @@ public class DefaultOCRService implements OCRService {
 		}
 	}
 	
-	public List<String> parse(String filename) {
+	@Override
+	public List<AccountIdentifier> parse(String filename) {
 		
-		List<String> accountIdentifiers = new ArrayList<>();
+		List<AccountIdentifier> accountIdentifiers = new ArrayList<>();
 		
 		int currentLine = 1;
 		
@@ -142,10 +83,10 @@ public class DefaultOCRService implements OCRService {
 				reader.readLine(); // blank line
 				
 				if (line1 == null || line2 == null || line3 == null) {
-					throw new RuntimeException("file " + dir.getAbsolutePath() + " do not contain a number of lines that is a multiple of 4.");
+					throw new RuntimeException("file " + filename + " do not contain a number of lines that is a multiple of 4.");
 				}
 				
-				accountIdentifiers.add(parse(line1, line2, line3, currentLine));
+				accountIdentifiers.add(new AccountIdentifier(line1, line2, line3));
 			}
 			
 		} catch (IOException e) {
@@ -153,23 +94,6 @@ public class DefaultOCRService implements OCRService {
 		}
 		
 		return accountIdentifiers;
-	}
-
-	private String parse(String line1, String line2, String line3, int fileLineNumber) {
-		if (line1.length() != 27 || line2.length() != 27 || line3.length() != 27) {
-			throw new RuntimeException("file " + dir.getName() + " is malformed : line " + fileLineNumber + 
-					" or one of the two previous ones do not contain 27 chars...");
-		}
-		
-		char[] chars = new char[9];
-		for(int i = 0; i < 9; i++) {
-			int start = i*3;
-			int end = (i+1)*3;
-			String key = line1.substring(start, end) + line2.substring(start, end) + line3.substring(start, end);
-			chars[i] = numberEncoding.get(key);
-		}
-		
-		return new String(chars);
 	}
 
 	@Override

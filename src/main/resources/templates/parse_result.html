@@ -14,10 +14,18 @@
 		</div>
 		
 		<div th:if="${accountIdentifiers != null}">
-			Parsed account numbers :
+			Parsed account numbers from file <span class="text-info" th:text="${filename}"></span>:
 			<ul>
-				<li th:each="accountId : ${accountIdentifiers}" th:text="${accountId}"></li>
+				<li th:each="accountId : ${accountIdentifiers}">
+					<span class="text-info" th:text="${accountId.getParsedId()}"></span>
+					<span class="text-danger" th:text="${accountId.getParsingStatus()}"></span>
+				</li>
 			</ul>
+		</div>
+		
+		<div th:if="${errorMsg != null}">
+			Error occurred while parsing account numbers from file <span class="text-info" th:text="${filename}"></span>:
+			<p class="text-danger" th:text="${errorMsg}"></p>
 		</div>
 	</body>
 </html>
