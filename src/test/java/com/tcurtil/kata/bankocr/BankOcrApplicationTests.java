@@ -62,13 +62,29 @@ public class BankOcrApplicationTests {
 	public void testInvalidChecksum() {
 		List<AccountIdentifier> parse = ocrService.parse("account_list_2.txt");
 		
-		Assert.assertEquals("Two accounts was expected", 2, parse.size());
+		Assert.assertEquals("Three accounts were expected", 2, parse.size());
 		
 		Assert.assertEquals("Account 123456789", "123456789", parse.get(0).getParsedId());
 		Assert.assertEquals("Account 123456789 is valid", ParsingStatus.VALID, parse.get(0).getParsingStatus());
 		
 		Assert.assertEquals("Account 223456789", "223456789", parse.get(1).getParsedId());
 		Assert.assertEquals("Account 223456789 has invalid checksum", ParsingStatus.INVALID_CHECKSUM, parse.get(1).getParsingStatus());
+	}
+	
+	@Test
+	public void testInvalidCharaceters() {
+		List<AccountIdentifier> parse = ocrService.parse("account_list_3.txt");
+		
+		Assert.assertEquals("Two accounts were expected", 3, parse.size());
+		
+		Assert.assertEquals("Account 457508000", "457508000", parse.get(0).getParsedId());
+		Assert.assertEquals("Account 457508000 is valid", ParsingStatus.VALID, parse.get(0).getParsingStatus());
+		
+		Assert.assertEquals("Account 664371495", "664371495", parse.get(1).getParsedId());
+		Assert.assertEquals("Account 664371495 has invalid checksum", ParsingStatus.INVALID_CHECKSUM, parse.get(1).getParsingStatus());
+		
+		Assert.assertEquals("Account 86110??36", "86110??36", parse.get(2).getParsedId());
+		Assert.assertEquals("Account 86110??36 has invalid characters", ParsingStatus.INVALID_CHARACTER, parse.get(2).getParsingStatus());
 	}
 	
 	@Test

@@ -39,13 +39,19 @@ public class AccountIdentifier {
 			String key = Arrays.stream(rawIdentifier)
 					.map(line -> line.substring(start, end))
 					.collect(Collectors.joining());
-			chars[i] = NumberEncoding.parseNumber(key);
+			chars[i] = NumberEncoding.parseNumber(key).orElse('?');
 		}
 		
 		this.parsedId = new String(chars);
 	}
 	
 	private void check() {
+		// checking valid number
+		if (this.parsedId.contains("?")) {
+			this.parsingStatus = ParsingStatus.INVALID_CHARACTER;
+			return;
+		}
+		
 		// now checking checksum
 		int sum = 0;
 		int length = this.parsedId.length();

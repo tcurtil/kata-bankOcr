@@ -18,7 +18,7 @@
 			<ul>
 				<li th:each="accountId : ${accountIdentifiers}">
 					<span class="text-info" th:text="${accountId.getParsedId()}"></span>
-					<span class="text-danger" th:text="${accountId.getParsingStatus()}"></span>
+					<span class="text-danger" th:text="#{'ParsingStatus.' + ${accountId.getParsingStatus()}}"></span>
 				</li>
 			</ul>
 		</div>

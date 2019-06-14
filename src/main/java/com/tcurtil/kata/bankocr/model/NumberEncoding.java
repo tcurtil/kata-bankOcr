@@ -2,6 +2,7 @@ package com.tcurtil.kata.bankocr.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Utility class to convert a number produce by the "ingenious machine" to
@@ -75,8 +76,16 @@ public final class NumberEncoding {
 			, '9');
 	}
 	
-	public static Character parseNumber(String key) {
-		return numberEncoding.get(key);
+	/**
+	 * Parse an 'ingenous manchine' number (3x3 chars (&lt;space&gt;, | or _), joined) into the corresponding Character.
+	 * 
+	 * If it can't be parsed, an empty Optional is returned.
+	 * 
+	 * @param key joined 3x3 chars
+	 * @return number a char or an empty optional
+	 */
+	public static Optional<Character> parseNumber(String key) {
+		return Optional.ofNullable(numberEncoding.get(key));
 	}
 	
 }
