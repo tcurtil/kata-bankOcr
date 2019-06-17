@@ -1,6 +1,10 @@
 package com.tcurtil.kata.bankocr.model;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -11,17 +15,46 @@ import java.util.stream.Collectors;
  */
 public class AccountIdentifier {
 
-	private String[] rawIdentifier; // 3 lines
+	/**
+	 * 3 lines
+	 */
+	private String[] rawIdentifier;
+	/**
+	 * Parsed id from the rawIdentifier. May contains some ? chars
+	 */
 	private String parsedId;
+	
+	/**
+	 * parsing status
+	 */
 	private ParsingStatus parsingStatus;
+	
+	/**
+	 * In case the rawIdentifier is not firectly valid,
+	 * possible identifiers will be stored here.
+	 */
+	private List<String> otherPossibleIdentifiers;
 	
 	public AccountIdentifier(String... line) {
 		if (line.length != 3) {
 			throw new RuntimeException("Expecting 3 lines to parse. Got " + line.length);
 		}
 		this.rawIdentifier = line;
-		parse();
-		check();
+		this.parse();
+		this.parsingStatus = check(this.parsedId);
+		if (parsingStatus != ParsingStatus.VALID) {
+			this.otherPossibleIdentifiers = 
+				tryToFix("", this.parsedId, 0)
+					.stream()
+					.filter(id -> check(id) == ParsingStatus.VALID)
+					.collect(Collectors.toList());
+			if (this.otherPossibleIdentifiers.size() == 1) {
+				this.parsedId = this.otherPossibleIdentifiers.get(0);
+				this.parsingStatus = ParsingStatus.VALID;
+			} else if (this.otherPossibleIdentifiers.size() > 1) {
+				this.parsingStatus = ParsingStatus.AMBIGUOUS;
+			}
+		}
 	}
 
 	private void parse() {
@@ -45,26 +78,46 @@ public class AccountIdentifier {
 		this.parsedId = new String(chars);
 	}
 	
-	private void check() {
+	private ParsingStatus check(String identifier) {
 		// checking valid number
-		if (this.parsedId.contains("?")) {
-			this.parsingStatus = ParsingStatus.INVALID_CHARACTER;
-			return;
+		if (identifier.contains("?")) {
+			return ParsingStatus.INVALID_CHARACTER;
 		}
 		
 		// now checking checksum
 		int sum = 0;
-		int length = this.parsedId.length();
+		int length = identifier.length();
 		for(int i = 0; i < length; i++) {
-			int val = Integer.valueOf(this.parsedId.substring(length - i - 1,  length - i));
+			int val = Integer.valueOf(identifier.substring(length - i - 1,  length - i));
 			sum += val * (i+1);
 		}
 		
 		if (sum % 11 == 0) {
-			this.parsingStatus = ParsingStatus.VALID;
+			return ParsingStatus.VALID;
 		} else {
-			this.parsingStatus = ParsingStatus.INVALID_CHECKSUM;
+			return ParsingStatus.INVALID_CHECKSUM;
 		}
+	}
+	
+	private List<String> tryToFix(String prefix, String suffix, int currentCharIdx) {
+		if (suffix.length() == 0) {
+			return Collections.singletonList(prefix);
+		}
+		
+		String key = Arrays.stream(this.rawIdentifier).map(s -> s.substring(3 * currentCharIdx, 3 * (currentCharIdx+1))).collect(Collectors.joining());
+		List<Character> possibleFixes = NumberEncoding.getFixesForWronglyFormedChar(key);
+		Optional<Character> actualNumber = NumberEncoding.parseNumber(key);
+		
+		List<String> results = new ArrayList<>();
+		if (actualNumber.isPresent()) {
+			// current character is valid. Continue exploration with this one.
+			results.addAll(tryToFix(prefix + suffix.substring(0,  1), suffix.substring(1), currentCharIdx + 1));
+		}
+		
+		for(Character c : possibleFixes) {
+			results.add(prefix + c + suffix.substring(1));
+		}
+		return results;
 	}
 	
 	public String getParsedId() {
@@ -77,5 +130,9 @@ public class AccountIdentifier {
 	
 	public String[] getRawIdentifier() {
 		return rawIdentifier;
+	}
+	
+	public List<String> getOtherPossibleIdentifiers() {
+		return otherPossibleIdentifiers;
 	}
 }

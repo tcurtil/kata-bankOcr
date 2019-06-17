@@ -26,6 +26,7 @@ public class HomeController {
 		model.put("availableFiles", ocrService.listFilenames());
 		if (filename != null) {
 			try {
+				model.put("fileContent", ocrService.getFileContent(filename));
 				List<AccountIdentifier> parse = ocrService.parse(filename);
 				model.put("accountIdentifiers", parse);
 			} catch(Exception e) {

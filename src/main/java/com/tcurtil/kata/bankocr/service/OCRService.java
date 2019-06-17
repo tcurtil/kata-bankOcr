@@ -1,6 +1,5 @@
 package com.tcurtil.kata.bankocr.service;
 
-import java.io.File;
 import java.util.List;
 
 import com.tcurtil.kata.bankocr.model.AccountIdentifier;
@@ -17,8 +16,15 @@ public interface OCRService {
 
 	/**
 	 * List the available files for parsing
-	 * @return a list of java.io.File
+	 * @return a list of filenames accepted by the parser
 	 */
-	List<File> listFilenames();
+	List<String> listFilenames();
+
+	/**
+	 * Return the full file content as List<String>. Use with care (ie on small files)
+	 * @param filename
+	 * @return
+	 */
+	List<String> getFileContent(String filename);
 
 }

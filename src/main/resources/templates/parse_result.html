@@ -1,31 +1,48 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
-	<head></head>
-	<body>
-		Hello.
-		
+	<head>
+		<link rel="stylesheet" href="../static/bootstrap.css" th:href="@{/bootstrap.css}"></link>
+	</head>
+	<body class="container-fluid">
+		<h1>Available file for parsing</h1>
 		<div>
 			Here is the files that you may parse :
 			<ul>
 				<li th:each="f : ${availableFiles}">
-					<a th:href="@{'?filename='+${f.getName()}}" th:text="${f.getName()}"></a>
+					<a th:href="@{'?filename='+${f}}" th:text="${f}"></a>
 				</li>
 			</ul>
 		</div>
+		<hr/>
 		
-		<div th:if="${accountIdentifiers != null}">
-			Parsed account numbers from file <span class="text-info" th:text="${filename}"></span>:
-			<ul>
-				<li th:each="accountId : ${accountIdentifiers}">
-					<span class="text-info" th:text="${accountId.getParsedId()}"></span>
-					<span class="text-danger" th:text="#{'ParsingStatus.' + ${accountId.getParsingStatus()}}"></span>
-				</li>
-			</ul>
-		</div>
-		
-		<div th:if="${errorMsg != null}">
-			Error occurred while parsing account numbers from file <span class="text-info" th:text="${filename}"></span>:
-			<p class="text-danger" th:text="${errorMsg}"></p>
+		<h1>Parsing Result</h1>
+		<div class=row>
+			<div class="col-md-6">
+				<div th:if="${accountIdentifiers != null}">
+					Parsed account numbers from file <span class="text-info" th:text="${filename}"></span>:
+					<ul>
+						<li th:each="accountId : ${accountIdentifiers}">
+							<span class="text-info" th:text="${accountId.getParsedId()}"></span>
+							<span class="text-danger" th:text="#{'ParsingStatus.' + ${accountId.getParsingStatus()}}"></span>
+							<span th:if="${accountId.getOtherPossibleIdentifiers()?.size() > 1}">
+								[
+								<th:block th:each="id : ${accountId.getOtherPossibleIdentifiers()}" th:text="${id} + ' '"></th:block>
+								]
+							</span>
+						</li>
+					</ul>
+				</div>
+				<div th:if="${errorMsg != null}">
+					<h1>Parsing error</h1>
+					Error occurred while parsing account numbers from file <span class="text-info" th:text="${filename}"></span>:
+					<p class="text-danger" th:text="${errorMsg}"></p>
+				</div>
+			</div>
+			<div class="col-md-6">
+				File <span class="text-info" th:text="${filename}"></span> content :
+				<pre><th:block th:each="line : ${fileContent}">[[${line}]]
+</th:block></pre>
+			</div>
 		</div>
 	</body>
 </html>
